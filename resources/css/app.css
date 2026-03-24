@@ -8,3 +8,11 @@
 @theme {
     --font-sans: "Conqueraa", Conqueraa;
 }
+
+@layer base {
+    html,
+    body {
+        font-family: "Conqueraa", Conqueraa;
+    }
+}
+
