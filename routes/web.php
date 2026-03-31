@@ -3,6 +3,7 @@
 use App\Http\Controllers\WarrantyController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\WarrantyController as AdminWarrantyController;
+use App\Http\Controllers\Admin\WarrantyCodeController as AdminWarrantyCodeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,6 +26,7 @@ Route::post('/warranty', [WarrantyController::class, 'store'])->name('warranty.s
 Route::view('/terms', 'terms')->name('terms');
 
 Route::get('/warranty/check', [WarrantyController::class, 'showSendOtpForm'])->name('warranty.check');
+Route::post('/warranty/validate-code', [WarrantyController::class, 'validateCode'])->name('warranty.validate_code');
 Route::post('/warranty/check', [WarrantyController::class, 'sendOtp'])->name('warranty.check.send');
 Route::get('/warranty/check/verify/{warranty}', [WarrantyController::class, 'showVerifyOtpForm'])->name('warranty.check.verify');
 Route::post('/warranty/check/verify/{warranty}', [WarrantyController::class, 'verifyOtp'])->name('warranty.check.verify.post');
@@ -48,5 +50,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('warranties', [AdminWarrantyController::class, 'store'])->name('warranties.store');
         Route::get('warranties/{warranty}', [AdminWarrantyController::class, 'show'])->name('warranties.show');
         Route::delete('warranties/{warranty}', [AdminWarrantyController::class, 'destroy'])->name('warranties.destroy');
+
+        Route::get('code-generation', [AdminWarrantyCodeController::class, 'index'])->name('code_generation.index');
+        Route::get('code-generation/create', [AdminWarrantyCodeController::class, 'create'])->name('code_generation.create');
+        Route::post('code-generation', [AdminWarrantyCodeController::class, 'store'])->name('code_generation.store');
     });
 });

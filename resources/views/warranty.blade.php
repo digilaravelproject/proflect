@@ -7,6 +7,7 @@
     <title>Proflect Warranty Request</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <style>
             /*! tailwindcss v4.0.7 | MIT License | https://tailwindcss.com */
@@ -163,10 +164,18 @@
                                 </label>
 
                                 <label class="block">
-                                    <span class="text-xs text-gray-300">Warranty number (read-only)</span>
+                                    <span class="text-xs text-gray-300">Warranty number / code</span>
                                     <input type="text" name="unique_number"
-                                        value="{{ $nextWarrantyNumber ?? '10001' }}" readonly
-                                        class="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-gray-200 placeholder:text-gray-400 focus:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                                        value="{{ old('unique_number', $nextWarrantyNumber ?? '10001') }}"
+                                        maxlength="5"
+                                        pattern="\d{5}"
+                                        class="mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/35 focus:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                                        placeholder="Enter a 5-digit code or keep the generated number" />
+                                    <p id="codeValidationMessage" class="mt-2 text-sm text-gray-400">Enter a 5-digit admin code provided to you by the admin.</p>
+                                </label>
+
+                                <label class="mt-2 block text-xs text-gray-400">
+                                    Only admin-generated codes are accepted. Enter your code here to proceed.
                                 </label>
 
                                 <label class="mt-4 flex items-start gap-3 text-xs text-gray-400">
@@ -235,6 +244,8 @@
         const cardNumber = document.getElementById('cardNumber');
         const cardExpiry = document.getElementById('cardExpiry');
         const warrantyPreview = document.getElementById('warrantyPreview');
+        const codeInput = document.querySelector('input[name="unique_number"]');
+        const codeValidationMessage = document.getElementById('codeValidationMessage');
 
         function formatExpiry(date) {
             const dd = String(date.getDate()).padStart(2, '0');
@@ -243,10 +254,8 @@
             return `${dd}/${mm}/${yy}`;
         }
 
-        const nextWarrantyNumber = '{{ $nextWarrantyNumber ?? 'AUTOGEN' }}';
-
         function updateCard() {
-            cardNumber.textContent = nextWarrantyNumber;
+            cardNumber.textContent = codeInput.value || '{{ $nextWarrantyNumber ?? 'AUTOGEN' }}';
 
             const now = new Date();
             const expiry = new Date(now.getTime());
@@ -257,15 +266,72 @@
             setTimeout(() => warrantyPreview.classList.remove('animate-wiggle'), 600);
         }
 
-        form.addEventListener('submit', () => {
+        async function validateUniqueNumber() {
+            const code = codeInput.value.trim();
+
+            if (!/^\d{5}$/.test(code)) {
+                codeValidationMessage.textContent = 'Please enter a valid 5-digit code or warranty number.';
+                codeValidationMessage.className = 'mt-2 text-sm text-red-300';
+                return false;
+            }
+
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const response = await fetch('{{ route('warranty.validate_code') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                body: JSON.stringify({ unique_number: code }),
+            });
+
+            if (!response.ok) {
+                codeValidationMessage.textContent = 'Unable to validate the code right now. Please try again.';
+                codeValidationMessage.className = 'mt-2 text-sm text-red-300';
+                return false;
+            }
+
+            const data = await response.json();
+
+            if (!data.valid) {
+                codeValidationMessage.textContent = data.message;
+                codeValidationMessage.className = 'mt-2 text-sm text-red-300';
+                return false;
+            }
+
+            codeValidationMessage.textContent = data.message;
+            codeValidationMessage.className = 'mt-2 text-sm text-emerald-300';
+            return true;
+        }
+
+        codeInput.addEventListener('input', () => {
+            updateCard();
+            if (/^\d{5}$/.test(codeInput.value.trim())) {
+                validateUniqueNumber();
+            } else {
+                codeValidationMessage.textContent = 'Enter a 5-digit code or use the generated number.';
+                codeValidationMessage.className = 'mt-2 text-sm text-gray-400';
+            }
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const isValid = await validateUniqueNumber();
+            if (!isValid) {
+                return;
+            }
+
             submitButton.disabled = true;
             submitText.textContent = 'Submitting...';
             spinner.classList.remove('hidden');
+            form.submit();
         });
 
-        document.addEventListener('DOMContentLoaded', updateCard);
-
         document.addEventListener('DOMContentLoaded', () => {
+            updateCard();
+
             const toggle = document.getElementById('mobileMenuButton');
             const menu = document.getElementById('mobileMenu');
 

@@ -54,9 +54,9 @@
                                 <a href="{{ route('admin.warranties.index') }}" class="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition">
                                     Warranties
                                 </a>
-                                <?php /*<a href="{{ route('admin.warranties.create') }}" class="inline-flex items-center justify-center rounded-full border border-yellow-400 px-4 py-2 text-xs font-medium text-yellow-400 hover:bg-yellow-400 hover:text-black transition">
-                                    Add warranty
-                                </a> */?>
+                                <a href="{{ route('admin.code_generation.index') }}" class="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition">
+                                    Code generation
+                                </a>
                                 <form action="{{ route('admin.logout') }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition">
@@ -69,6 +69,7 @@
 
                     <div id="mobileMenu" class="hidden mt-4 space-y-3 rounded-2xl border border-white/10 bg-black/60 p-4 text-sm text-gray-200 md:hidden">
                         <a href="{{ route('admin.warranties.index') }}" class="block rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">Warranties</a>
+                        <a href="{{ route('admin.code_generation.index') }}" class="block rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">Code generation</a>
                         <a href="{{ route('admin.warranties.create') }}" class="block rounded-lg border border-yellow-400 bg-white/5 px-4 py-2 text-center text-sm font-medium text-yellow-400 hover:bg-yellow-400 hover:text-black">Add warranty</a>
                         <form action="{{ route('admin.logout') }}" method="POST">
                             @csrf
